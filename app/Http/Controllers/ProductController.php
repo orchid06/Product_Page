@@ -122,17 +122,15 @@ class ProductController extends Controller
 
         if(count($results)>0){
 
+            return back()->with('error', 'Item added in cart, Can not be deleted');
+
 
         }
         else{
 
             Product::destroy($id);
-        }
-        
-
-        
-        
-        
+            return back();
+        }  
     }
 
     public function search(Request $request){
@@ -194,6 +192,14 @@ class ProductController extends Controller
         $cartProduct->image       = $product->image;
 
         $cartProduct->save();
+
+        $newQty = $maxValue-$request->input('qty');
+
+        Product::where('id', $id)->update([
+
+            'qty' => $newQty,
+
+        ]);
         
 
         return back();
@@ -223,18 +229,18 @@ class ProductController extends Controller
              ->with('totalCartPrice',$totalCartPrice);
     }
 
-    public function cartProductDelete($id){
+    public function cartQtyUpdate(Request $request, $product_id){
 
-        Cart::destroy($id);
 
-        return back();
-    }
+        $carts = Cart::where('product_id',$product_id)->get();
 
-    public function cartQtyUpdate(Request $request, $id){
+        foreach($carts as $cart){
 
-        $product = Product::find($id);
+            $maxValue = $cart->stockQty;
 
-        $maxValue = $product->qty;
+            $existingCartQty = $cart->qty;
+
+        }
 
         $request->validate([
 
@@ -242,12 +248,77 @@ class ProductController extends Controller
 
         ]);
 
-        Cart::where('id',$id)->update([
+        $product = Product::find($product_id);
+        $stockQty = $product->qty;
+        $inputQty = $request->input('cartQty');
 
-        'qty'       => $request -> input('cartQty'),
+
+        if($existingCartQty < $inputQty){
+
+            $diff = $inputQty - $existingCartQty;
+
+            $newQty = $stockQty - $diff;
+
+            Product::where('id' , $product_id)->update([
+
+                'qty' => $newQty
+
+            ]);
+
+        }
+        else{
+
+            $diff =  $existingCartQty - $inputQty;
+
+            $newQty = $stockQty + $diff;
+
+            Product::where('id' , $product_id)->update([
+
+                'qty' => $newQty
+
+            ]);
+
+        }
+
+        Cart::where('product_id',$product_id)->update([
+
+        'qty'       => $inputQty,
+
         ]);
 
         return back();
+    }
+
+    public function cartProductDelete($id){
+
+       $cartProduct = Cart::find($id);
+
+       $product_id = $cartProduct ->product_id;
+
+       $cartQty = $cartProduct->qty;
+
+       $product = Product::find($product_id);
+
+       $productQty = $product->qty;
+
+       $newQty = $cartQty + $productQty;
+
+       
+
+       Product::where('id', $product_id )->update([
+
+       'qty' => $newQty,
+       
+       ]);
+
+        Cart::destroy($id);
+
+        return back();
+    }
+
+    public function purchased()
+    {
+
     }
 
     

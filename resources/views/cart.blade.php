@@ -37,7 +37,7 @@
                       </div>
 
                       <div class="col-md-3 col-lg-3 col-xl-2 d-flex">
-                        <form action="{{route('cartQty.update' ,['id'=>$cartProduct->id])}}" method="post">
+                        <form action="{{route('cartQty.update' ,['product_id'=>$cartProduct->product_id])}}" method="post">
                           @csrf
                           <div class="row">
                             
@@ -91,7 +91,7 @@
                       <h5> {{$totalCartPrice}} ৳</h5>
                     </div>
 
-                    <button type="button" class="btn btn-dark btn-block btn-lg" data-mdb-ripple-color="dark">Check Out</button>
+                    <a href="{{route('product.purchased')}}" type="button" class="btn btn-dark btn-block btn-lg" data-mdb-ripple-color="dark">Check Out</button></a>
 
                   </div>
                 </div>

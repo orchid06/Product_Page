@@ -25,6 +25,11 @@
 
     <div class="container mt-5">
         <h3> Products </h3>
+        @if(session()->has('error'))
+        <div class="alert alert-danger" role="alert">
+            {{session()->get('error')}}
+        </div>
+        @endif
         <div class="mb=3">
             <div class="row-3">
                 <div class="container">
@@ -237,7 +242,7 @@
                                                 </div>
                                                 <div class="modal-body">
                                                     <div class="container">
-                                                        
+
                                                         ...Are you sure you want to delete <strong>{{$product->title}} ?</strong>
                                                     </div>
                                                 </div>

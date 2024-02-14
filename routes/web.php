@@ -30,7 +30,9 @@ Route::get('/cart/' , [ProductController::class, 'cartPage'])->name('cart.page')
 
 Route::get('/cart/delete/{id}', [ProductController::class, 'cartProductDelete'])->name('cartProduct.delete');
 
-Route::post('cart/QtyUpdate/{id}', [ProductController::class, 'cartQtyUpdate'])->name('cartQty.update');
+Route::post('cart/QtyUpdate/{product_id}', [ProductController::class, 'cartQtyUpdate'])->name('cartQty.update');
+
+Route::get('cart/purchased', [ProductController::class, 'purchased'])->name('product.purchased');
 
 
 
