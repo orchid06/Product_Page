@@ -34,6 +34,8 @@ Route::post('cart/QtyUpdate/{product_id}', [ProductController::class, 'cartQtyUp
 
 Route::get('cart/purchased', [ProductController::class, 'purchased'])->name('product.purchased');
 
+Route::get('/product/{id}' , [ProductController::class, 'productDetails'])->name('product.page');
+
 
 
 

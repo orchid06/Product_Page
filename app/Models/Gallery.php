@@ -5,10 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Product extends Model
+class Gallery extends Model
 {
     use HasFactory;
-    protected $table   = 'products';
-    protected $guarded =[];
-    protected $casts = ['gallery_image' => 'object'];
+    protected $table='gallery';
+    protected $guarded = [];
 }

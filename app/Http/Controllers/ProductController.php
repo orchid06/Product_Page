@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Models\Cart;
+use App\Models\Gallery;
 
 class ProductController extends Controller
 {
@@ -52,10 +53,30 @@ class ProductController extends Controller
 
         if($request->hasFile('image'))
         {
+            
             $file          = $request->file('image');
             $extention     = $file->getClientOriginalExtension();
-            $filename      =time(). '.' .$extention;
+            $filename      =uniqid(). '.' .$extention;
             $file ->move('uploads/',$filename);
+
+
+        }
+
+
+        if($request->hasFile('gallery_image'))
+        {
+            $galleryFiles = $request->file('gallery_image');
+
+
+            foreach($galleryFiles as $galleryFile){
+
+            $extention     = $galleryFile->getClientOriginalExtension();
+            $galleryFileName      =uniqid(). '.' .$extention;
+            $galleryFile->move('uploads/gallery/',$galleryFileName);
+
+            $galleryFileNames[] = $galleryFileName;
+
+            }
 
 
         }
@@ -67,7 +88,7 @@ class ProductController extends Controller
             'price'       => $request -> input('price'),
             'qty'         => $request -> input('qty'),
             'image'       => $filename,
-
+            'gallery_image'=>$galleryFileNames,
 
         ]);
 
@@ -92,14 +113,28 @@ class ProductController extends Controller
         {
             $file          = $request->file('image');
             $extention     = $file->getClientOriginalExtension();
-            $filename      =time(). '.' .$extention;
+            $filename      = uniqid(). '.' .$extention;
             $file ->move('uploads/',$filename);
+
+            
 
             Product::where('id',$id)->update([
 
             'image'   => $filename,
 
             ]);
+        }
+
+        if($request->hasFile('gallery_image'))
+        {
+            $files = $request->file('gallery_image');
+
+            foreach($files as $file){
+                
+                $extention     = $file->getClientOriginalExtension();
+                $filename      =uniqid(). '.' .$extention;
+                $file ->move('uploads/gallery/',$filename);
+                }
         }
 
         Product::where('id',$id)->update([
@@ -314,6 +349,24 @@ class ProductController extends Controller
         Cart::destroy($id);
 
         return back();
+    }
+
+    public function productDetails($id){
+
+        $product_id = $id;
+
+        $product     = Product::find($id);
+
+        $orderProducts  = Cart::where('product_id', $product_id)->get();
+
+        $totalOrder = 0;
+
+        foreach($orderProducts as $orderProduct){
+
+            $totalOrder = $orderProduct->qty;
+        }
+
+        return view('productDetails', compact('product'))->with('totalOrder', $totalOrder);
     }
 
     public function purchased()

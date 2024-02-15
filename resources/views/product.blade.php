@@ -19,6 +19,25 @@
     <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css'>
     <!-- Font Awesome CSS -->
     <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css'>
+    <style>
+        a:link {
+            color: black;
+            background-color: transparent;
+            text-decoration: none;
+        }
+
+        a:hover {
+            color: black;
+            background-color: transparent;
+            text-decoration: underline;
+        }
+
+        a:active {
+            color: green;
+            background-color: transparent;
+            text-decoration: underline;
+        }
+    </style>
 </head>
 
 <body>
@@ -108,7 +127,12 @@
 
                                                     <div class="form-row">
                                                         <label for="image" class="form-label">Product Image :</label>
-                                                        <input class="form-control" type="file" name="image" id="image">
+                                                        <input class="form-control" type="file" id="image" name="image">
+                                                    </div>
+
+                                                    <div class="form-row">
+                                                        <label for="gallery_image" class="form-label">Gallery Image:</label>
+                                                        <input class="form-control" type="file" id="gallery_image" name="gallery_image[]" multiple>
                                                     </div>
 
                                                 </div>
@@ -137,9 +161,11 @@
                             <div class="card-body">
                                 <img src="uploads/{{$product->image}}" style="width:250px; height:150px;">
                                 <h6 class="card-subtitle mb-1 text-muted"></h6>
-                                <h5 class="card-title">{{$product->title}}</h5>
+                                <a href="{{route('product.page', ['id'=>$product->id])}}" target="_blank">
+                                    <h5>{{$product->title}}</h5>
+                                </a>
                                 <p class="card-text">{{$product->description}}</p>
-                                <h5 class="card-title">Price : {{$product->price}} BDT</h5>
+                                <h6 class="card-title">Price : {{$product->price}} BDT</h6>
                                 <h6 class="card-title mb-1 text-muted">In Stock: {{$product->qty}}</h6>
                                 <!--Card Buttons-->
                                 <h6 class="card-title" style="text-align:right;">
@@ -217,6 +243,13 @@
                                                                     <label for="image" class="form-label">Product Image :</label>
                                                                     <input class="form-control" type="file" name="image" id="image">
                                                                 </div>
+
+                                                                <div class="form-row">
+                                                                    <label for="gallery_image" class="form-label">Gallery Image:</label>
+                                                                    <input class="form-control" type="file" id="gallery_image" name="gallery_image[]" multiple>
+                                                                </div>
+
+
 
                                                             </div>
                                                         </div>
