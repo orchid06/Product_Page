@@ -27,21 +27,14 @@
                             <div class="row py-3 shadow-5">
                                 <div class="col-12 mb-1">
                                     <div class="lightbox">
-                                        <img src="http://localhost:8000/uploads/waterMelon/image1.jpg" alt="Gallery image 1" class="ecommerce-gallery-main-img active w-100" />
+                                        <img src="{{url('/uploads').'/'.$product->image}}" alt="Gallery image 1" class="ecommerce-gallery-main-img active w-100" />
                                     </div>
                                 </div>
+                                @foreach($galleryImages as $galleryImage)
                                 <div class="col-3 mt-1">
-                                    <img src="http://localhost:8000/uploads/waterMelon/image2.jpg"  alt="Gallery image 1" class="active w-100" />
+                                    <img src="{{url('/uploads/gallery').'/'.$galleryImage}}"  alt="Gallery image 1" class="active w-100" />
                                 </div>
-                                <div class="col-3 mt-1">
-                                    <img src="http://localhost:8000/uploads/waterMelon/image3.jpg"  alt="Gallery image 2" class="w-100" />
-                                </div>
-                                <div class="col-3 mt-1">
-                                    <img src="http://localhost:8000/uploads/waterMelon/image4.jpg"  alt="Gallery image 3" class="w-100" />
-                                </div>
-                                <div class="col-3 mt-1">
-                                    <img src="http://localhost:8000/uploads/waterMelon/image5.jpg" alt="Gallery image 4" class="w-100" />
-                                </div>
+                                @endforeach
                             </div>
                         </div>
                         <div class="card-body">

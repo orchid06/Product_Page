@@ -22,19 +22,15 @@
     <style>
         a:link {
             color: black;
-            background-color: transparent;
             text-decoration: none;
         }
 
         a:hover {
             color: black;
-            background-color: transparent;
             text-decoration: underline;
         }
 
         a:active {
-            color: green;
-            background-color: transparent;
             text-decoration: underline;
         }
     </style>
@@ -49,6 +45,27 @@
             {{session()->get('error')}}
         </div>
         @endif
+
+        <!-- /resources/views/post/create.blade.php -->
+
+
+        @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul>
+                @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+        @endif
+
+        @if(session()->has('success'))
+        <div class="alert alert-success" role="alert">
+            {{session()->get('success')}}
+        </div>
+        @endif
+
+        <!-- Create Post Form -->
         <div class="mb=3">
             <div class="row-3">
                 <div class="container">
@@ -121,6 +138,24 @@
                                                     </div>
 
                                                     <div class="form-row">
+                                                        <label for="discount" class="form-label">Discount :</label>
+                                                        <input type="text" class="form-control" name="discount" id="discount" placeholder="Discount" value="{{old('discount')}}">
+
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="type" id="flat" value="0">
+                                                            <label class="form-check-label" for="flat">
+                                                                ৳
+                                                            </label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="type" id="percentage" checked value="1">
+                                                            <label class="form-check-label" for="percentage">
+                                                                %
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-row">
                                                         <label for="qty" class="form-label">Quantity :</label>
                                                         <input type="text" class="form-control" name="qty" id="qty" placeholder="Quantity" value="{{old('qty')}}">
                                                     </div>
@@ -167,6 +202,8 @@
                                 <p class="card-text">{{$product->description}}</p>
                                 <h6 class="card-title">Price : {{$product->price}} BDT</h6>
                                 <h6 class="card-title mb-1 text-muted">In Stock: {{$product->qty}}</h6>
+                                <h6 class="card-title mb-1 text-muted">Discount: {{$product->discount}} {{$product->discountType}}</h6>
+                                <h6 class="card-title mb-1 text-muted">Discounted Price : {{$product->discountedPrice}}</h6>
                                 <!--Card Buttons-->
                                 <h6 class="card-title" style="text-align:right;">
 
@@ -235,6 +272,24 @@
                                                                 </div>
 
                                                                 <div class="form-row">
+                                                                    <label for="discount" class="form-label">Discount :</label>
+                                                                    <input type="text" class="form-control" name="discount" id="discount" placeholder="Discount" value="{{$product->discount}}">
+
+                                                                    <div class="form-check">
+                                                                        <input class="form-check-input" type="radio" name="type" id="flat" value="1">
+                                                                        <label class="form-check-label" for="flat">
+                                                                            ৳
+                                                                        </label>
+                                                                    </div>
+                                                                    <div class="form-check">
+                                                                        <input class="form-check-input" type="radio" name="type" id="percentage" checked value="0">
+                                                                        <label class="form-check-label" for="percentage">
+                                                                            %
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="form-row">
                                                                     <label for="qty" class="form-label">Quantity :</label>
                                                                     <input type="text" class="form-control" name="qty" id="qty" placeholder="Quantity" value="{{$product->qty}}">
                                                                 </div>
@@ -281,7 +336,7 @@
                                                 </div>
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                    <a href="{{route('product.delete' , ['id'=>$product->id])}}" type="submit" class="btn btn-danger">Delete</button></a>
+                                                    <a href="{{route('product.delete' , ['id'=>$product->id])}}" type="submit" class="btn btn-danger">Delete</a>
                                                 </div>
 
                                             </div>

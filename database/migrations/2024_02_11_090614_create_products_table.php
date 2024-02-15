@@ -18,7 +18,10 @@ return new class extends Migration
             $table->float('price');
             $table->integer('qty');
             $table->string('image');
-            $table->text('gallery_image');
+            $table->text('gallery_image')->nullable();
+            $table->integer('discount')->nullable();
+            $table->text('discountType')->nullable();
+            $table->float('discountedPrice')->nullable();
             $table->timestamps();
         });
     }
