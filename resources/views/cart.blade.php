@@ -11,7 +11,13 @@
 <body>
   <section class="h-100 h-custom" style="background-color: #d2c9ff;">
     <div class="container py-5 h-100">
-      @if(count($cartProducts)>0)
+      @if(session()->has('success'))
+      <div class="alert alert-success" role="alert">
+        {{session()->get('success')}}
+      </div>
+      @endif
+
+      
       <div class="row d-flex justify-content-center align-items-center h-100">
 
         <div class="col-12">
@@ -24,6 +30,7 @@
                       <h1 class="fw-bold mb-0 text-black">Shopping Cart</h1>
                       <h6 class="mb-0 text-muted"></h6>
                     </div>
+                    @if(count($cartProducts)>0)
                     @foreach($cartProducts as $cartProduct)
                     <hr class="my-4">
 
@@ -40,21 +47,21 @@
                         <form action="{{route('cartQty.update' ,['product_id'=>$cartProduct->product_id])}}" method="post">
                           @csrf
                           <div class="row">
-                            
 
-                              <button class="btn btn-link px-2" onclick="this.parentNode.querySelector('input[type=number]').stepDown()">
-                                <i class="fas fa-minus"></i>
-                              </button>
 
-                              <input id="form1" min="1" max="{{$cartProduct->stockQty}}" name="cartQty" value="{{$cartProduct->qty}}" type="number" class="form-control form-control-sm" />
+                            <button class="btn btn-link px-2" onclick="this.parentNode.querySelector('input[type=number]').stepDown()">
+                              <i class="fas fa-minus"></i>
+                            </button>
 
-                              <button class="btn btn-link px-2" onclick="this.parentNode.querySelector('input[type=number]').stepUp()">
-                                <i class="fas fa-plus"></i>
-                              </button>
+                            <input id="form1" min="1" max="{{$cartProduct->stockQty}}" name="cartQty" value="{{$cartProduct->qty}}" type="number" class="form-control form-control-sm" />
 
-                              <button type="submit" class="btn btn-light">Add</button>
+                            <button class="btn btn-link px-2" onclick="this.parentNode.querySelector('input[type=number]').stepUp()">
+                              <i class="fas fa-plus"></i>
+                            </button>
 
-                            
+                            <button type="submit" class="btn btn-light">Add</button>
+
+
                           </div>
                         </form>
                       </div>
@@ -67,6 +74,9 @@
                       </div>
                     </div>
                     @endforeach
+                    @else
+                    <h3>No item Added to Cart </h3>
+                    @endif
 
                     <div class="pt-5">
                       <h6 class="mb-0"><a href="{{route('store.index')}}" class="text-body"><i class="fas fa-long-arrow-alt-left me-2"></i>Back to shop</a></h6>
@@ -101,9 +111,7 @@
         </div>
 
       </div>
-      @else
-      <h3>No item Added to Cart </h3>
-      @endif
+      
     </div>
   </section>
 </body>
