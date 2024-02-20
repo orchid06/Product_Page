@@ -10,23 +10,204 @@ use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
+
     public function index()
     {
 
-        $products   = Product::latest()->paginate(3);
+        $products = Product::latest()->paginate(3);
 
+
+        $onPageQty = $onPagePrice = 0;
         $onPageProduct = count($products);
-        $onPageQty = 0;
-        $onPagePrice = 0;
+
 
         foreach ($products as $product) {
-            $onPageQty      += $product->qty;
-            $onPagePrice    += $product->price;
+            $onPageQty   += $product->qty;
+            $onPagePrice += $product->price;
         }
 
-        $totalProduct   = Product::count('title');
-        $totalQty       = Product::sum('qty');
-        $totalPrice     = Product::sum('price');
+
+        $totalProduct = Product::count();
+        $totalQty     = Product::sum('qty');
+        $totalPrice   = Product::sum('price');
+
+
+        return view('product', compact(
+            'products',
+            'totalQty',
+            'totalPrice',
+            'totalProduct',
+            'onPageQty',
+            'onPageProduct',
+            'onPagePrice'
+        ));
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'title'           => 'required|max:50',
+            'description'     => 'required|max:200',
+            'price'           => 'required|numeric',
+            'qty'             => 'required|numeric',
+            'image'           => 'required|image',
+            'gallery_image.*' => 'image',
+            'discount'        => 'numeric|nullable',
+            'type'            => 'nullable|in:1,2',
+            'discountPrice'   => 'max:price|nullable',
+        ]);
+
+
+        $image = $request->file('image');
+        $imageName = uniqid() . '.' . $image->getClientOriginalExtension();
+        $image->move('uploads/', $imageName);
+
+
+        $galleryFileNames = [];
+
+        if ($request->hasFile('gallery_image')) {
+            foreach ($request->file('gallery_image') as $galleryImage) {
+                $galleryImageName = uniqid() . '.' . $galleryImage->getClientOriginalExtension();
+                $galleryImage->move('uploads/gallery/', $galleryImageName);
+                $galleryFileNames[] = $galleryImageName;
+            }
+        }
+
+
+        $price    = $request->input('price');
+        $discount = $request->input('discount');
+
+        $discountType    = $request->input('type') == 1
+            ? "%"
+            : "৳";
+
+        $discountedPrice = $request->input('type') == 1
+            ? $price - ($price * $discount * (1 / 100))
+            : $price - $discount;
+
+
+        Product::create([
+            'title'           => $request->input('title'),
+            'description'     => $request->input('description'),
+            'price'           => $price,
+            'qty'             => $request->input('qty'),
+            'image'           => $imageName,
+            'discount'        => $discount,
+            'discountType'    => $discountType,
+            'discountedPrice' => $discountedPrice,
+            'gallery_image'   => $galleryFileNames,
+        ]);
+
+        return back()->with('success', 'Data stored successfully');
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'title'       => 'required|max:50',
+            'description' => 'required|max:200',
+            'price'       => 'required|numeric|gt:-1',
+            'qty'         => 'required|numeric',
+            'discount'    => 'nullable|lte:price|gt:-1|numeric',
+        ]);
+
+        $product = Product::findOrFail($id);
+
+
+        $discount     = $request->input('discount', 0);
+        $price        = $request->input('price');
+        $discountType = $request->input('type');
+
+        $discountedPrice = $discountType == 1
+            ? $price - ($price * $discount * (1 / 100))
+            : $price - $discount;
+
+        $discountType    = $discountType == 1
+            ? "%"
+            : "৳";
+
+        $filename         = $product->image;
+        $galleryFileNames = $product->gallery_image;
+
+        if ($request->hasFile('image')) {
+            $file      = $request->file('image');
+            $extention = $file->getClientOriginalExtension();
+            $filename  = uniqid() . '.' . $extention;
+            $file->move('uploads/', $filename);
+        }
+
+        if ($request->hasFile('gallery_image')) {
+            foreach ($request->file('gallery_image') as $galleryFile) {
+                $extention       = $galleryFile->getClientOriginalExtension();
+                $galleryFileName = uniqid() . '.' . $extention;
+                $galleryFile->move('uploads/gallery/', $galleryFileName);
+                $galleryFileNames[] = $galleryFileName;
+            }
+        }
+
+        $product->update([
+            'title'           => $request->input('title'),
+            'description'     => $request->input('description'),
+            'price'           => $price,
+            'qty'             => $request->input('qty'),
+            'discount'        => $discount,
+            'discountType'    => $discountType,
+            'discountedPrice' => $discountedPrice,
+            'image'           => $filename,
+            'gallery_image'   => $galleryFileNames,
+        ]);
+
+        return back()->with('success', 'Product Updated');
+    }
+
+    public function delete($id)
+    {
+
+        $cartItems = Cart::where('product_id', $id)->get();
+
+        if ($cartItems->isNotEmpty()) {
+            return back()->with('error', 'This item is added in cart and can not be deleted.');
+        }
+
+        $product = Product::find($id);
+
+        if (!$product) {
+            return back()->with('error', 'Product not found.');
+        }
+
+
+        $imagePath = public_path("uploads/{$product->image}");
+        if (file_exists($imagePath)) {
+            @unlink($imagePath);
+        }
+
+        foreach ($product->gallery_image as $galleryFileName) {
+            $galleryPath = public_path("uploads/gallery/{$galleryFileName}");
+            if (file_exists($galleryPath)) {
+                @unlink($galleryPath);
+            }
+        }
+
+
+        $product->delete();
+
+        return back()->with('success', 'Product deleted successfully.');
+    }
+
+    public function search(Request $request)
+    {
+        $search = $request->input('search');
+
+        $products = Product::where('title', 'LIKE', "%$search%")
+            ->orWhere('description', 'LIKE', "%$search%")->paginate(3);
+
+        $totalProduct  = Product::count();
+        $totalQty      = Product::sum('qty');
+        $totalPrice    = Product::sum('price');
+
+        $onPageQty     = $products->sum('qty');
+        $onPagePrice   = $products->sum('price');
+        $onPageProduct = $products->count();
 
         return view('product', compact(
             'products',
@@ -39,330 +220,93 @@ class ProductController extends Controller
         ));
     }
 
-    public function store(Request $request)
-    {
-
-
-
-        $request->validate([
-
-            'title'        => 'required|max:50',
-            'description'  => 'required|max:200',
-            'price'        => 'required|numeric',
-            'qty'          => 'required|numeric',
-            'image'        => 'required',
-            'discountPrice' => 'max:price|nullable',
-
-
-        ]);
-
-        if ($request->hasFile('image')) {
-
-            $file          = $request->file('image');
-            $extention     = $file->getClientOriginalExtension();
-            $filename      = uniqid() . '.' . $extention;
-            $file->move('uploads/', $filename);
-        }
-
-        $galleryFileNames = [];
-
-
-        if ($request->hasFile('gallery_image')) {
-            $galleryFiles = $request->file('gallery_image');
-
-
-            foreach ($galleryFiles as $galleryFile) {
-
-                $extention     = $galleryFile->getClientOriginalExtension();
-                $galleryFileName      = uniqid() . '.' . $extention;
-                $galleryFile->move('uploads/gallery/', $galleryFileName);
-
-                $galleryFileNames[] = $galleryFileName;
-            }
-        }
-
-        $discount     = $request->input('discount');
-        $discountType = $request->input('type');
-        $price        = $request->input('price');
-
-        $discountedPrice = $discountType == 1
-            ? $price - ($price * $discount * (1 / 100))
-            : $price - $discount;
-        $discountType    = $discountType == 1
-            ? "%"
-            : "৳";
-
-        Product::create([
-
-            'title'           => $request->input('title'),
-            'description'     => $request->input('description'),
-            'price'           => $request->input('price'),
-            'qty'             => $request->input('qty'),
-            'image'           => $filename,
-            'discount'        => $discount,
-            'discountType'    => $discountType,
-            'discountedPrice' => $discountedPrice,
-            'gallery_image'   => $galleryFileNames,
-
-        ]);
-
-        return back()->with('success', 'Data stored successfully');
-    }
-
-    public function update(Request $request, $id)
-    {
-
-        $request->validate([
-
-            'title'        => 'required|max:50',
-            'description'  => 'required|max:200',
-            'price'        => 'required|numeric|gt:-1',
-            'qty'          => 'required|numeric',
-            'discount'     => 'nullable|lte:price|gt:-1|numeric',
-        ]);
-
-
-
-        $product = Product::where('id', $id)->findorfail();
-
-        $discount        = $request->input('discount', 0);
-        $discountType    = $request->input('type');
-        $price           = $request->input('price');
-
-        $discountedPrice = $discountType == 1
-            ? $price - ($price * $discount * (1 / 100))
-            : $price - $discount;
-        $discountType    = $discountType == 1
-            ? "%"
-            : "৳";
-
-
-
-
-        if ($request->hasFile('image')) {
-            $file          = $request->file('image');
-            $extention     = $file->getClientOriginalExtension();
-            $filename      = uniqid() . '.' . $extention;
-            $file->move('uploads/', $filename);
-        }
-
-        if ($request->hasFile('gallery_image')) {
-
-            foreach ($request->file('gallery_image') as $galleryFile) {
-
-                $extention            = $galleryFile->getClientOriginalExtension();
-                $galleryFileName      = uniqid() . '.' . $extention;
-                $galleryFile->move('uploads/gallery/', $galleryFileName);
-                $galleryFileNames[]   = $galleryFileName;
-            }
-        }
-
-        $product->update([
-            'title'           => $request->input('title'),
-            'description'     => $request->input('description'),
-            'price'           => $request->input('price'),
-            'qty'             => $request->input('qty'),
-            'discount'        => $discount,
-            'discountType'    => $discountType,
-            'discountedPrice' => $discountedPrice,
-            "image"           => @$filename ?? $product->image,
-            "gallery_image"   => @$galleryFileNames ?? $product->gallery_image
-
-        ]);
-
-        return back() - with('success', 'Product Updated');
-    }
-
-    public function delete($id)
-    {
-
-        $results = Cart::where('product_id', $id)->get();
-
-        if (count($results) > 0) {
-            return back()->with('error', 'Item added in cart, Can not be deleted');
-        } else {
-
-            $product          = Product::find($id);
-            $filename         = $product->image;
-            $galleryFileNames = $product->gallery_image;
-            $imagePath        = "uploads/$filename";
-
-
-            foreach ($galleryFileNames as $galleryFileName) {
-
-                $galleryPath = "uploads/gallery/$galleryFileName";
-
-                if (file_exists($galleryPath)) {
-
-                    @unlink($galleryPath);
-                }
-            }
-
-            if (file_exists($imagePath)) {
-
-                @unlink($imagePath);
-            }
-
-            Product::destroy($id);
-            return back()->with('success', 'Product Deleted');
-        }
-    }
-
-    public function search(Request $request)
-    {
-
-        $search = $request->input('search');
-
-        $results = Product::where('title', 'LIKE', '%' . $search . '%')
-            ->orwhere('description', 'LIKE', '%' . $search . '%')->paginate(3);
-
-        $totalProduct  = Product::count('title');
-        $totalQty      = Product::sum('qty');
-        $totalPrice    = Product::sum('price');
-
-        $onPageQty = 0;
-        $onPagePrice = 0;
-        $onPageProduct = count($results);
-
-        foreach ($results as $result) {
-            $onPageQty      += $result->qty;
-            $onPagePrice    += $result->price;
-        }
-
-        return view('product', ['products' => $results])
-            ->with('totalQty', $totalQty)
-            ->with('totalPrice', $totalPrice)
-            ->with('totalProduct', $totalProduct)
-            ->with('onPageProduct', $onPageProduct)
-            ->with('onPageQty', $onPageQty)
-            ->with('onPagePrice', $onPagePrice);
-    }
-
     public function cart(Request $request, $id)
     {
-        $results = Cart::where('product_id', $id)->get();
+        $existingCartItem = Cart::where('product_id', $id)->first();
 
-        if (count($results) > 0) {
-
-            return back()->with('error', 'Item already added in cart, you can increase quantity in cart');
-        } else {
-
-            $product = Product::find($id);
-
-            $maxValue = $product->qty;
-
-            $request->validate([
-
-                'qty'          => 'required|numeric|max:' . $maxValue,
-
-            ]);
-
-            $discountedPrice = $product->discountedPrice;
-
-            $discountedPrice != null ? $productPrice = $discountedPrice
-                : $productPrice = $product->price;
-
-
-            $cartProduct = new Cart();
-
-            $cartProduct->product_id  = $product->id;
-            $cartProduct->title       = $product->title;
-            $cartProduct->description = $product->description;
-            $cartProduct->price       = $productPrice;
-            $cartProduct->qty         = $request->input('qty');
-            $cartProduct->stockQty    = $product->qty;
-            $cartProduct->image       = $product->image;
-
-            $cartProduct->save();
-
-            $newQty = $maxValue - $request->input('qty');
-
-            Product::where('id', $id)->update([
-
-                'qty' => $newQty,
-
-            ]);
-
-
-            return back()->with('success', 'Item Added to cart');
+        if ($existingCartItem) {
+            return back()->with('error', 'Item already added in cart. You can increase the quantity in the cart.');
         }
+
+        $product = Product::find($id);
+
+        $maxQty = $product->qty;
+
+        $request->validate([
+            'qty' => 'required|numeric|max:' . $maxQty,
+        ]);
+
+        $productPrice = $product->discountedPrice ?? $product->price;
+
+        $cartProduct = new Cart();
+        $cartProduct->product_id  = $product->id;
+        $cartProduct->title       = $product->title;
+        $cartProduct->description = $product->description;
+        $cartProduct->price       = $productPrice;
+        $cartProduct->qty         = $request->input('qty');
+        $cartProduct->stockQty    = $maxQty;
+        $cartProduct->image       = $product->image;
+        $cartProduct->save();
+
+        $newQty = $maxQty - $request->input('qty');
+        $product->update(['qty' => $newQty]);
+
+        return back()->with('success', 'Item added to cart successfully.');
     }
 
     public function cartpage()
     {
-
         $cartProducts = Cart::latest()->get();
 
-        $totalCartProduct   = Cart::count('title');
-        $totalCartQty       = Cart::sum('qty');
+        $totalCartProduct = $cartProducts->count();
+        $totalCartQty     = $cartProducts->sum('qty');
 
-        $totalCartPrice = 0;
-
-        foreach ($cartProducts as $cartProduct) {
-
-            $productPrice    = $cartProduct->price * $cartProduct->qty;
-            $totalCartPrice += $productPrice;
-        }
-
+        $totalCartPrice = $cartProducts->sum(function ($cartProduct) {
+            return $cartProduct->price * $cartProduct->qty;
+        });
 
         return view('cart', compact('cartProducts', 'totalCartProduct', 'totalCartQty', 'totalCartPrice'));
     }
 
     public function cartQtyUpdate(Request $request, $product_id)
     {
+        $cart = Cart::where('product_id', $product_id)->first();
 
-
-        $carts = Cart::where('product_id', $product_id)->get();
-
-        foreach ($carts as $cart) {
-
-            $maxValue = $cart->stockQty;
-
-            $existingCartQty = $cart->qty;
+        if (!$cart) {
+            return back()->with('error', 'Cart item not found.');
         }
+
+        $maxValue        = $cart->stockQty;
+        $existingCartQty = $cart->qty;
 
         $request->validate([
-
             'cartQty' => 'required|numeric|max:' . $maxValue,
-
         ]);
 
-        $product = Product::find($product_id);
-        $stockQty = $product->qty;
-        $inputQty = $request->input('cartQty');
+        $inputQty  = $request->input('cartQty');
+        $product   = Product::find($product_id);
+        $stockQty  = $product->qty;
 
+        $qtyDifference = $existingCartQty - $inputQty;
 
-        if ($existingCartQty < $inputQty) {
+        if ($qtyDifference > 0) {
 
-            $diff = $inputQty - $existingCartQty;
+            $newQty = $stockQty + $qtyDifference;
+        } elseif ($qtyDifference < 0) {
 
-            $newQty = $stockQty - $diff;
-
-            Product::where('id', $product_id)->update([
-
-                'qty' => $newQty
-
-            ]);
+            $newQty = $stockQty - abs($qtyDifference);
         } else {
 
-            $diff =  $existingCartQty - $inputQty;
-
-            $newQty = $stockQty + $diff;
-
-            Product::where('id', $product_id)->update([
-
-                'qty' => $newQty
-
-            ]);
+            $newQty = $stockQty;
         }
 
-        Cart::where('product_id', $product_id)->update([
 
-            'qty'       => $inputQty,
+        $product->update(['qty' => $newQty]);
 
-        ]);
 
-        return back()->with('success', 'More quantity added');
+        $cart->update(['qty' => $inputQty]);
+
+        return back()->with('success', 'Quantity updated successfully.');
     }
 
     public function cartProductDelete($id)
@@ -370,49 +314,49 @@ class ProductController extends Controller
 
         $cartProduct = Cart::find($id);
 
+
+        if (!$cartProduct) {
+            return back()->with('error', 'Cart item not found.');
+        }
+
+
         $product_id = $cartProduct->product_id;
-
-        $cartQty = $cartProduct->qty;
-
-        $product = Product::find($product_id);
-
-        $productQty = $product->qty;
-
-        $newQty = $cartQty + $productQty;
+        $cartQty    = $cartProduct->qty;
+        $product    = Product::find($product_id);
 
 
+        if (!$product) {
+            return back()->with('error', 'Product not found.');
+        }
 
-        Product::where('id', $product_id)->update([
 
-            'qty' => $newQty,
+        $newQty = $cartQty + $product->qty;
 
-        ]);
+        $product->update(['qty' => $newQty]);
 
-        Cart::destroy($id);
+        $cartProduct->delete();
 
-        return back()->with('success', 'Item deleted');
+        return back()->with('success', 'Item deleted successfully.');
     }
 
     public function productDetails($id)
     {
+        
+        $product = Product::find($id);
 
-        $product_id = $id;
+        if (!$product) {
+            return back()->with('error', 'Product not found.');
+        }
 
-        $product     = Product::find($id);
+        $orderProducts = Cart::where('product_id', $id)->get();
 
-        $orderProducts  = Cart::where('product_id', $product_id)->get();
-
-        $totalOrder = 0;
+        $totalOrder = $orderProducts->sum('qty');
 
         $galleryImages = $product->gallery_image;
 
-        foreach ($orderProducts as $orderProduct) {
-
-            $totalOrder = $orderProduct->qty;
-        }
-
         return view('productDetails', compact('product', 'galleryImages', 'totalOrder'));
     }
+
 
     public function purchased()
     {
