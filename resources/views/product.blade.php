@@ -356,10 +356,7 @@
 
             </div>
             <div class="mt-4">
-                {{-- Pagination --}}
-                <div class="d-flex justify-content-center">
-                    {{$products->links()}}
-                </div>
+                
             </div>
         </div>
 
@@ -384,13 +381,13 @@
                                         <tbody>
                                             <tr>
                                                 <td>
-                                                    <h6 class="mb-1">{{$onPageProduct}}</h6>
+                                                    <h6 class="mb-1">{{$products->count()}}</h6>
                                                 </td>
                                                 <td>
-                                                    <h6 class="mb-1">{{$onPageQty}}</h6>
+                                                    <h6 class="mb-1">{{$products->sum('qty')}}</h6>
                                                 </td>
                                                 <td>
-                                                    <h6 class="mb-1">{{$onPagePrice}}</h6>
+                                                    <h6 class="mb-1">{{$products->sum('price')}}</h6>
 
                                                 </td>
                                             </tr>
@@ -411,7 +408,7 @@
                                             <tr>
                                                 <th>Total Product</th>
                                                 <th>Total Quantity</th>
-                                                <th>Total Price</th>
+                                                
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -421,10 +418,6 @@
                                                 </td>
                                                 <td>
                                                     <h6 class="mb-1">{{$totalQty}}</h6>
-                                                </td>
-                                                <td>
-                                                    <h6 class="mb-1">{{$totalPrice}}</h6>
-
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -437,6 +430,7 @@
                 </div>
             </div>
         </section>
+    </div>
 
         <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>

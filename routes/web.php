@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/' , [ProductController::class, 'index'])->name('store.index');
+Route::get('/' , [ProductController::class, 'index'])->name('index');
 
 Route::post('/store' , [ProductController::class, 'store'])->name('product.store');
 

@@ -36,11 +36,11 @@
 
                     <div class="row mb-4 d-flex justify-content-between align-items-center">
                       <div class="col-md-2 col-lg-2 col-xl-2">
-                        <img src="uploads/{{$cartProduct->image}}" class="img-fluid rounded-3" alt="Cotton T-shirt">
+                        <img src="uploads/{{$cartProduct->product->image}}" class="img-fluid rounded-3" alt="Cotton T-shirt">
                       </div>
                       <div class="col-md-3 col-lg-3 col-xl-3">
-                        <h6 class="text-muted">{{$cartProduct->description}}</h6>
-                        <h6 class="text-black mb-0">{{$cartProduct->title}}</h6>
+                        <h6 class="text-muted">{{$cartProduct->product->description}}</h6>
+                        <h6 class="text-black mb-0">{{$cartProduct->product->title}}</h6>
                       </div>
 
                       <div class="col-md-3 col-lg-3 col-xl-2 d-flex">
@@ -53,7 +53,7 @@
                               <i class="fas fa-minus"></i>
                             </button>
 
-                            <input id="form1" min="1" max="{{$cartProduct->stockQty}}" name="cartQty" value="{{$cartProduct->qty}}" type="number" class="form-control form-control-sm" />
+                            <input id="form1" min="1" max="{{$cartProduct->product->qty}}" name="cartQty" value="{{$cartProduct->qty}}" type="number" class="form-control form-control-sm" />
 
                             <button class="btn btn-link px-2" onclick="this.parentNode.querySelector('input[type=number]').stepUp()">
                               <i class="fas fa-plus"></i>
@@ -79,7 +79,7 @@
                     @endif
 
                     <div class="pt-5">
-                      <h6 class="mb-0"><a href="{{route('store.index')}}" class="text-body"><i class="fas fa-long-arrow-alt-left me-2"></i>Back to shop</a></h6>
+                      <h6 class="mb-0"><a href="{{route('index')}}" class="text-body"><i class="fas fa-long-arrow-alt-left me-2"></i>Back to shop</a></h6>
                     </div>
                   </div>
                 </div>

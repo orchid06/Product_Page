@@ -30,11 +30,15 @@
                                         <img src="{{url('/uploads').'/'.$product->image}}" alt="Gallery image 1" class="ecommerce-gallery-main-img active w-100" />
                                     </div>
                                 </div>
-                                @foreach($galleryImages as $galleryImage)
+                                @if($product->gallery_image!=null)
+                                @foreach($product->gallery_image as $galleryImage)
                                 <div class="col-3 mt-1">
                                     <img src="{{url('/uploads/gallery').'/'.$galleryImage}}"  alt="Gallery image 1" class="active w-100" />
                                 </div>
                                 @endforeach
+                                @else
+
+                                @endif
                             </div>
                         </div>
                         <div class="card-body">
@@ -55,7 +59,7 @@
 
 
                                 <div class="pt-5">
-                                    <h6 class="mb-0"><a href="{{route('store.index')}}" class="text-body"><i class="fas fa-long-arrow-alt-left me-2"></i>Back to shop</a></h6>
+                                    <h6 class="mb-0"><a href="{{route('index')}}" class="text-body"><i class="fas fa-long-arrow-alt-left me-2"></i>Back to shop</a></h6>
                                 </div>
                             </div>
                         </div>
